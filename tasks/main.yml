@@ -1,0 +1,97 @@
+---
+# --------------------------------
+
+- name: 'copy bash include file over'
+  copy:
+    src: docker.sh
+    dest: /usr/local/etc/bash.d
+    owner: root
+    group: root
+    mode: 0644
+  become: true
+  tags:
+  - docker
+  - docker-scripts
+
+- name: 'copy convenience scripts over'
+  copy:
+    src: '{{item}}'
+    dest: /usr/local/bin
+    owner: root
+    group: root
+    mode: '0755'
+  with_items:
+  - dbuild.sh
+  - drac.sh
+  - drdi.sh
+  - drun.sh
+  become: true
+  tags:
+  - docker
+  - docker-scripts
+
+- name: 'grab some packages so we can install the repo key'
+  apt:
+    name: '{{docker_dependencies}}'
+    state: present
+  become: true
+  tags:
+  - docker
+  - docker-pkg
+  - x-pkg
+
+- name: 'add docker repo key'
+  apt_key:
+    url: 'https://download.docker.com/linux/ubuntu/gpg'
+    validate_certs: true
+    state: present
+  become: true
+  tags:
+  - docker
+  - docker-repo
+
+- name: 'add docker repository to APT'
+  apt_repository:
+    repo: 'deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ct_codename}} stable'
+    state: present
+    update_cache: true
+    filename: docker
+  register: reg_docker_repo
+  become: true
+  tags:
+  - docker
+  - docker-repo
+
+- name: 'update apt cache and install docker packages'
+  apt:
+    name: '{{docker_packages}}'
+    update_cache: '{{reg_docker_repo is changed}}'
+    state: present
+  become: true
+  tags:
+  - docker
+  - docker-pkg
+
+- name: 'add users to docker role'
+  user:
+    name: '{{item}}'
+    append: true
+    groups: 'docker'
+  loop: '{{docker_users}}'
+  become: true
+  tags:
+  - docker
+  - docker-iam
+
+- name: 'start and enable docker service'
+  service:
+    name: docker
+    enabled: true
+    state: started
+  become: true
+  tags:
+  - docker
+  - docker-svc
+
+# --------------------------------
+...
