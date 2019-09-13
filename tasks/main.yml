@@ -1,6 +1,18 @@
 ---
 # --------------------------------
 
+- name: 'added some directories under /usr/local'
+  file:
+    path: '{{item}}'
+    owner: root
+    group: root
+    mode: 0755
+  loop: ['/usr/local/bin', '/usr/local/etc', '/usr/local/etc/bash.d']
+  become: true
+  tags:
+  - docker
+  - docker-scripts
+
 - name: 'copy bash include file over'
   copy:
     src: docker.sh
@@ -20,7 +32,7 @@
     owner: root
     group: root
     mode: '0755'
-  with_items:
+  loop:
   - dbuild.sh
   - drac.sh
   - drdi.sh
@@ -38,7 +50,6 @@
   tags:
   - docker
   - docker-pkg
-  - x-pkg
 
 - name: 'add docker repo key'
   apt_key:
@@ -81,7 +92,7 @@
   become: true
   tags:
   - docker
-  - docker-iam
+  - docker-user
 
 - name: 'start and enable docker service'
   service:
