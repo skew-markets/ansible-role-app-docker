@@ -4,6 +4,7 @@
 - name: 'added some directories under /usr/local'
   file:
     path: '{{item}}'
+    state: directory
     owner: root
     group: root
     mode: 0755
@@ -103,6 +104,64 @@
   tags:
   - docker
   - docker-svc
+
+# --------------------------------
+# optional Docker Swarm set up
+
+- name: 'get local IP (assumes AWS host)'
+  command: curl http://169.254.169.254/latest/meta-data/local-ipv4
+  when:
+  - docker_swarm_mode == 'master'
+  - (ct_cloud|default('foo')) == 'aws'
+  register: reg_ip
+  check_mode: false
+  become: true
+  tags:
+  - docker
+  - docker-swarm
+
+- name: 'generate docker swarm key'
+  shell: docker swarm init  --advertise-addr {{reg_ip.stdout_lines[0]}} | grep 'docker swarm join ' > {{docker_swarm_tmpfile}}
+  args:
+    creates: '{{docker_swarm_tmpfile}}'
+  when: docker_swarm_mode == 'master'
+  become: true
+  tags:
+  - docker
+  - docker-swarm
+
+- name: 'fetch swarm file'
+  fetch:
+    src: '{{docker_swarm_tmpfile}}'
+    dest: /tmp/
+    flat: true
+  when: docker_swarm_mode == 'master'
+  become: true
+  tags:
+  - docker
+  - docker-swarm
+
+- name: 'load docker swarm command'
+  command: cat {{docker_swarm_tmpfile}}
+  when: docker_swarm_mode == 'minion'
+  register: reg_join_command
+  changed_when: false
+  delegate_to: localhost
+  tags:
+  - docker
+  - docker-swarm
+
+- name: 'tell minion to join swarm'
+  shell: '{{reg_join_command.stdout_lines[0]}}'
+  when: docker_swarm_mode == 'minion'
+  register: reg_join
+  failed_when: (reg_join.rc|int > 0) and ('This node is already part of a swarm' not in reg_join.stderr)
+  become: true
+  ignore_errors: '{{ansible_check_mode}}'
+  # changed_when: TODO
+  tags:
+  - docker
+  - docker-swarm
 
 # --------------------------------
 ...
