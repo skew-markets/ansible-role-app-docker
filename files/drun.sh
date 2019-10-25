@@ -7,9 +7,10 @@ doit=true
 envfile=''
 image=''
 noisy=true
+runargs=runargs
 tag=''
 volumes=''
-while getopts AHSU:e:i:qst:v: arg; do
+while getopts AHSU:e:i:qr:st:v: arg; do
 	case $arg in
 		A) volumes="$volumes -v $HOME/.aws:/root/.aws";;
 		H) volumes="$volumes -v $here:/here";;
@@ -18,6 +19,7 @@ while getopts AHSU:e:i:qst:v: arg; do
 		e) envfile="--env-file ${OPTARG}";;
 		i) image=$OPTARG;;
 		q) noisy=false;;
+		r) runargs=$OPTARG;;
 		s) doit=false; noisy=true;;
 		t) tag=$OPTARG;;
 		v) volumes="$volumes -v $OPTARG";;
@@ -41,14 +43,20 @@ if [[ -z "$tag" ]]; then
 	fi
 fi
 
+if [[ -r "$runargs" ]]; then
+	xargs=$(cat $runargs)
+else
+	xargs=''
+fi
+
 # --------------------------------
 
 if $noisy; then
     echo ''
-    echo "sudo docker run -i -t --rm $envfile $volumes ${image}:${tag}"
+    echo "sudo docker run -i -t --rm $xargs $envfile $volumes ${image}:${tag}"
     echo ''
 fi
 if $doit; then
-          sudo docker run -i -t --rm $envfile $volumes ${image}:${tag}
+          sudo docker run -i -t --rm $xargs $envfile $volumes ${image}:${tag}
 fi
 exit $?
