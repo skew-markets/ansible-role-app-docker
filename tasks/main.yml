@@ -11,8 +11,8 @@
   loop: ['/usr/local/bin', '/usr/local/etc', '/usr/local/etc/bash.d']
   become: true
   tags:
-  - docker
-  - docker-scripts
+  - ct-docker
+  - ct-docker-scripts
 
 - name: 'copy bash include file over'
   copy:
@@ -23,8 +23,8 @@
     mode: 0644
   become: true
   tags:
-  - docker
-  - docker-scripts
+  - ct-docker
+  - ct-docker-scripts
 
 - name: 'copy convenience scripts over'
   copy:
@@ -40,8 +40,8 @@
   - drun.sh
   become: true
   tags:
-  - docker
-  - docker-scripts
+  - ct-docker
+  - ct-docker-scripts
 
 - name: 'grab some packages so we can install the repo key'
   apt:
@@ -49,8 +49,8 @@
     state: present
   become: true
   tags:
-  - docker
-  - docker-pkg
+  - ct-docker
+  - ct-docker-pkg
 
 - name: 'add docker repo key'
   apt_key:
@@ -59,8 +59,8 @@
     state: present
   become: true
   tags:
-  - docker
-  - docker-repo
+  - ct-docker
+  - ct-docker-repo
 
 - name: 'add docker repository to APT'
   apt_repository:
@@ -71,8 +71,8 @@
   register: reg_docker_repo
   become: true
   tags:
-  - docker
-  - docker-repo
+  - ct-docker
+  - ct-docker-repo
 
 - name: 'update apt cache and install docker packages'
   apt:
@@ -81,8 +81,8 @@
     state: present
   become: true
   tags:
-  - docker
-  - docker-pkg
+  - ct-docker
+  - ct-docker-pkg
 
 - name: 'add users to docker role'
   user:
@@ -92,8 +92,8 @@
   loop: '{{docker_users}}'
   become: true
   tags:
-  - docker
-  - docker-user
+  - ct-docker
+  - ct-docker-user
 
 - name: 'start and enable docker service'
   service:
@@ -102,8 +102,8 @@
     state: started
   become: true
   tags:
-  - docker
-  - docker-svc
+  - ct-docker
+  - ct-docker-svc
 
 # --------------------------------
 # optional Docker Swarm set up
@@ -117,8 +117,8 @@
   check_mode: false
   become: true
   tags:
-  - docker
-  - docker-swarm
+  - ct-docker
+  - ct-docker-swarm
 
 - name: 'generate docker swarm key'
   shell: docker swarm init  --advertise-addr {{reg_ip.stdout_lines[0]}} | grep 'docker swarm join ' > {{docker_swarm_tmpfile}}
@@ -127,8 +127,8 @@
   when: docker_swarm_mode == 'master'
   become: true
   tags:
-  - docker
-  - docker-swarm
+  - ct-docker
+  - ct-docker-swarm
 
 - name: 'fetch swarm file'
   fetch:
@@ -138,8 +138,8 @@
   when: docker_swarm_mode == 'master'
   become: true
   tags:
-  - docker
-  - docker-swarm
+  - ct-docker
+  - ct-docker-swarm
 
 - name: 'load docker swarm command'
   command: cat {{docker_swarm_tmpfile}}
@@ -148,8 +148,8 @@
   changed_when: false
   delegate_to: localhost
   tags:
-  - docker
-  - docker-swarm
+  - ct-docker
+  - ct-docker-swarm
 
 - name: 'tell minion to join swarm'
   shell: '{{reg_join_command.stdout_lines[0]}}'
@@ -160,8 +160,8 @@
   ignore_errors: '{{ansible_check_mode}}'
   # changed_when: TODO
   tags:
-  - docker
-  - docker-swarm
+  - ct-docker
+  - ct-docker-swarm
 
 # --------------------------------
 ...
