@@ -1,8 +1,9 @@
 # MANAGED_BY_ANSIBLE
 
 {{lr_path}} {
+  compress
+  copytruncate
+  missingok
   rotate {{lr_count}}
   size {{lr_size}}
-  compress
-  missingok
 }
