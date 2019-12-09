@@ -15,11 +15,12 @@
 | ---- | ------- |
 
 ## Defaulted variables
-| name | purpose |
-| ---- | ------- |
-| docker_dependencies | list of packages needed to add the docker repo to APT |
-| docker_packages | list of docker packages to install |
-| docker_users | list of users to add to the docker group |
+| name | purpose | default |
+| ---- | ------- | ------- |
+| docker_dependencies | list of packages needed to add the docker repo to APT | varies |
+| docker_logrotation | sets up files in /etc/logrotate.d | [] or your list of dict(filename, count, path, size) | |
+| docker_packages | list of docker packages to install | TBC |
+| docker_users | list of users to add to the docker group | TBC |
 
 ## Supported Distros
 Ubuntu 16+

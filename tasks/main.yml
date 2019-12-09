@@ -95,6 +95,23 @@
   - ct-docker
   - ct-docker-user
 
+- name: 'render logrotate config'
+  template:
+    src: logrotate.j2
+    dest: /etc/logrotate.d/{{item.filename}}
+    owner: root
+    group: root
+    mode: '0644'
+  vars:
+    lr_count: '{{item.count}}'
+    lr_path: '{{item.path}}'
+    lr_size: '{{item.size}}'
+  loop: '{{docker_logrotation}}'
+  become: true
+  tags:
+  - ct-docker
+  - ct-docker-hkp
+
 - name: 'start and enable docker service'
   service:
     name: docker
