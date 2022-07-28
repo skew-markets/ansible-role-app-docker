@@ -1,7 +1,14 @@
 ---
-docker_dependencies: ['apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common']
+# --------------------------------
+
 docker_logrotation: []
-docker_packages: ['docker-ce']
+docker_pkg_dependencies: ['apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common']
+docker_pkg_names: ['docker-ce']
+docker_pkg_state: present
+docker_svc_enabled: true
+docker_svc_state: started
 docker_swarm_tmpfile: /tmp/ansible-swarm.txt
 docker_users: []
+
+# --------------------------------
 ...
