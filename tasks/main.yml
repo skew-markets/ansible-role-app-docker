@@ -45,7 +45,7 @@
 
 - name: 'grab some packages so we can install the repo key'
   apt:
-    name: '{{docker_dependencies}}'
+    name: '{{docker_pkg_dependencies}}'
     state: present
   become: true
   tags:
@@ -64,10 +64,10 @@
 
 - name: 'add docker repository to APT'
   apt_repository:
+    filename: docker
     repo: 'deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ct_codename}} stable'
     state: present
-    update_cache: true
-    filename: docker
+    update_cache: false
   register: reg_docker_repo
   become: true
   tags:
@@ -76,9 +76,9 @@
 
 - name: 'update apt cache and install docker packages'
   apt:
-    name: '{{docker_packages}}'
+    name: '{{docker_pkg_names}}'
     update_cache: '{{reg_docker_repo is changed}}'
-    state: present
+    state: '{{docker_pkg_state}}'
   become: true
   tags:
   - ct-docker
@@ -115,8 +115,8 @@
 - name: 'start and enable docker service'
   service:
     name: docker
-    enabled: true
-    state: started
+    enabled: '{{docker_svc_enabled}}'
+    state: '{{docker_svc_state}}'
   become: true
   tags:
   - ct-docker
